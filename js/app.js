@@ -1,5 +1,6 @@
 import { signin, graphql, AuthError } from "./api.js";
 import { saveToken, getToken, clearToken, isTokenValid } from "./auth.js";
+import { USER_QUERY } from "./queries.js";
 
 const loginView = document.querySelector("#login-view");
 const appView = document.querySelector("#app-view");
@@ -21,11 +22,12 @@ function showProfile() {
   loadProfile();
 }
 
-// Temporary test for issue #7: the real profile data comes in #8-#11
 async function loadProfile() {
   try {
-    const data = await graphql("{ user { id login } }");
-    console.log(data);
+    // Normal query: user is a list with only the logged-in user inside
+    const data = await graphql(USER_QUERY);
+    const user = data.user[0];
+    console.log(user); // temporary: the profile UI comes in Milestone 3
   } catch (error) {
     if (error instanceof AuthError) {
       logout();
