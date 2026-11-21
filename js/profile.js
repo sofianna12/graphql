@@ -1,6 +1,6 @@
 // Builds the sections of the profile page from the processed data.
 import { h, svg } from "./dom.js";
-import { responsiveChart, lineChart, barChart, BAR_ROW_HEIGHT } from "./charts.js";
+import { responsiveChart, lineChart, barChart, donutChart, BAR_ROW_HEIGHT } from "./charts.js";
 import { formatBytes, formatRatio, auditMessage, barPercent } from "./data.js";
 
 export function fullName(user) {
@@ -154,7 +154,63 @@ const formatMonth = (date) =>
 // Section 4: statistics (graphs)
 const TOP_PROJECTS = 10;
 
-export function renderStatsSection({ xpTimeline, xpPerProject }) {
+// Pass/fail donut with a legend next to it
+// A collapsible list of project names under the legend
+function projectDetails(title, items, describe) {
+  if (items.length === 0) return null;
+  return h("details", { class: "project-details" },
+    h("summary", {}, `${title} (${items.length})`),
+    h("ul", {},
+      items.map((item) =>
+        h("li", {},
+          h("span", { class: "project-name" }, item.name),
+          h("span", { class: "muted" }, describe(item)),
+        ),
+      ),
+    ),
+  );
+}
+
+function passFailChart({ passed, failed, inProgress }, lists) {
+  const graded = passed + failed;
+  if (graded === 0) return h("p", { class: "muted" }, "No graded projects yet.");
+
+  const passRate = Math.round((passed / graded) * 100);
+  const items = [
+    { name: "Passed", value: passed, className: "donut-pass" },
+    { name: "Failed", value: failed, className: "donut-fail" },
+  ];
+  const count = (n) => `${n} ${n === 1 ? "attempt" : "attempts"}`;
+
+  return h("div", { class: "donut-layout" },
+    donutChart(items, {
+      center: { value: `${passRate}%`, label: "pass rate" },
+      label: `Project attempts: ${passed} passed, ${failed} failed, pass rate ${passRate}%`,
+      formatValue: count,
+    }),
+    h("ul", { class: "legend" },
+      items.map((item) =>
+        h("li", {},
+          h("span", { class: `legend-dot ${item.className}`, "aria-hidden": "true" }),
+          h("span", {}, item.name),
+          h("strong", {}, item.value),
+        ),
+      ),
+      h("li", { class: "muted" },
+        h("span", { class: "legend-dot donut-progress", "aria-hidden": "true" }),
+        h("span", {}, "In progress"),
+        h("strong", {}, inProgress),
+      ),
+    ),
+    h("div", { class: "project-lists" },
+      projectDetails("Failed", lists.failed, (p) =>
+        `${formatDate(p.date)}${p.passedLater ? " · passed later ✓" : ""}`),
+      projectDetails("In progress", lists.inProgress, (p) => `started ${formatDate(p.date)}`),
+    ),
+  );
+}
+
+export function renderStatsSection({ xpTimeline, xpPerProject, projectResults, projectNames }) {
   const xpChart =
     xpTimeline.length === 0
       ? h("p", { class: "muted" }, "No XP yet.")
@@ -205,6 +261,11 @@ export function renderStatsSection({ xpTimeline, xpPerProject }) {
         "XP by project",
         `Top ${topProjects.length} of ${xpPerProject.length} projects by XP earned (exercises excluded).`,
         projectChart,
+      ),
+      chartCard(
+        "Projects pass / fail",
+        "Every graded project attempt: grade ≥ 1 is a pass, below 1 is a fail. Projects not graded yet are not in the chart.",
+        passFailChart(projectResults, projectNames),
       ),
     ),
   );

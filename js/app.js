@@ -7,6 +7,7 @@ import {
   recentXp,
   auditStats,
   projectStats,
+  projectLists,
   xpOverTime,
   xpByProject,
 } from "./data.js";
@@ -80,11 +81,10 @@ async function loadProfile() {
       renderStatsSection({
         xpTimeline: xpOverTime(xp),
         xpPerProject: xpByProject(xp),
+        projectResults: projectStats(projects),
+        projectNames: projectLists(projects),
       }),
     );
-
-    // temporary: this gets its own graph in #22 (bonus)
-    console.log("Projects:", projectStats(projects));
   } catch (error) {
     if (loadId !== currentLoad) return;
     if (error instanceof AuthError) {

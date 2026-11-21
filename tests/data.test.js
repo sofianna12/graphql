@@ -83,3 +83,18 @@ test("barPercent is relative to the max and stays between 0 and 100", () => {
   assert.equal(data.barPercent(100, 100), 100);
   assert.equal(data.barPercent(10, 0), 0);
 });
+
+test("projectLists names failed and in-progress projects", () => {
+  const projects = [
+    { grade: 1.2, createdAt: "2026-01-28", object: { name: "ascii-art-color" } },
+    { grade: 0.45, createdAt: "2025-12-22", object: { name: "ascii-art-color" } },
+    { grade: 0.3, createdAt: "2026-02-01", object: { name: "lem-in" } },
+    { grade: null, createdAt: "2026-09-22", object: { name: "shop" } },
+  ];
+  const lists = data.projectLists(projects);
+  assert.deepEqual(lists.failed.map((p) => [p.name, p.passedLater]), [
+    ["ascii-art-color", true],
+    ["lem-in", false],
+  ]);
+  assert.deepEqual(lists.inProgress.map((p) => p.name), ["shop"]);
+});

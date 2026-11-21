@@ -121,3 +121,24 @@ export function barPercent(value, max) {
   if (max <= 0) return 0;
   return Math.max(0, Math.min(100, (value / max) * 100));
 }
+
+// Names behind the pass/fail numbers, for the details under the donut.
+// A failed attempt also says if the same project was passed later.
+export function projectLists(projects) {
+  const passedNames = new Set(
+    projects.filter((p) => p.grade !== null && p.grade >= 1).map((p) => p.object.name),
+  );
+
+  return {
+    failed: projects
+      .filter((p) => p.grade !== null && p.grade < 1)
+      .map((p) => ({
+        name: p.object.name,
+        date: new Date(p.createdAt),
+        passedLater: passedNames.has(p.object.name),
+      })),
+    inProgress: projects
+      .filter((p) => p.grade === null)
+      .map((p) => ({ name: p.object.name, date: new Date(p.createdAt) })),
+  };
+}

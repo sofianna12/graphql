@@ -9,6 +9,7 @@
   --accent-hover: #3f4ac0;
   --error: #c62828;
   --error-bg: #fdecec;
+  --success: #2e9d5b;
   --radius: 12px;
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   color-scheme: light;
@@ -25,6 +26,7 @@
     --accent-hover: #959dff;
     --error: #ff8a80;
     --error-bg: #3a1f22;
+    --success: #5fd38d;
     --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     color-scheme: dark;
   }
@@ -290,7 +292,7 @@ body {
 }
 
 /* ===== Audits ===== */
-.ratio-good { color: #2e9d5b; }
+.ratio-good { color: var(--success); }
 .ratio-warning { color: #d9822b; }
 .ratio-bad { color: var(--error); }
 
@@ -545,4 +547,114 @@ body {
 
 .bar-row:focus-visible .bar-rect {
   opacity: 1;
+}
+
+/* ===== Donut chart ===== */
+.donut-layout {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.donut-inner {
+  width: 180px;
+  flex-shrink: 0;
+}
+
+.donut-chart {
+  display: block;
+  width: 180px;
+  height: 180px;
+}
+
+.donut-track,
+.donut-segment {
+  fill: none;
+  stroke-width: 6;
+}
+
+.donut-track { stroke: var(--border); }
+.donut-pass { stroke: var(--success); }
+.donut-fail { stroke: var(--error); }
+
+.donut-segment:hover,
+.donut-segment:focus-visible {
+  stroke-width: 7.5;
+  outline: none;
+}
+
+.donut-value {
+  font-size: 7px;
+  font-weight: 700;
+  fill: var(--text);
+}
+
+.donut-label {
+  font-size: 3px;
+  fill: var(--muted);
+}
+
+.legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.legend li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 160px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend-dot.donut-pass { background: var(--success); }
+.legend-dot.donut-fail { background: var(--error); }
+.legend-dot.donut-progress { border: 2px solid var(--muted); }
+
+/* ===== Failed / in progress lists ===== */
+.project-lists {
+  flex-basis: 100%; /* always on its own row, under the donut and legend */
+  display: grid;
+  gap: 0.5rem;
+}
+
+.project-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.project-details ul {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.project-details li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 0.75rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.project-details li:last-child {
+  border-bottom: none;
+}
+
+.project-name {
+  font-weight: 500;
+  overflow-wrap: anywhere;
 }

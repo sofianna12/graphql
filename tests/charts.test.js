@@ -1,7 +1,7 @@
 // Tests for the pure helpers in js/charts.js.  Run: node --test
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { scale, niceTicks, monthTicks, linePath, truncate, nearestIndex } from "../js/charts.js";
+import { scale, niceTicks, monthTicks, linePath, truncate, nearestIndex, donutSegments } from "../js/charts.js";
 
 test("scale maps a value proportionally", () => {
   assert.equal(scale(5, 0, 10, 0, 200), 100);
@@ -48,4 +48,12 @@ test("nearestIndex finds the closest value in a sorted list", () => {
   assert.equal(nearestIndex(xs, 0), 0);
   assert.equal(nearestIndex(xs, 100), 3);
   assert.equal(nearestIndex([], 5), -1);
+});
+
+test("donutSegments gives percents and start positions", () => {
+  assert.deepEqual(donutSegments([3, 1]), [
+    { value: 3, percent: 75, start: 0 },
+    { value: 1, percent: 25, start: 75 },
+  ]);
+  assert.deepEqual(donutSegments([0, 0]).map((s) => s.percent), [0, 0]);
 });

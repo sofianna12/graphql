@@ -286,3 +286,72 @@ export function barChart(items, { width, formatValue, label }) {
 
   return h("div", { class: "chart-inner" }, chart, tip.element);
 }
+
+// ---------- Donut chart ----------
+
+// The circumference of a circle with this radius is 100,
+// so in stroke-dasharray 1 unit = 1% of the circle.
+const DONUT_RADIUS = 100 / (2 * Math.PI); // ≈ 15.915
+
+// Turns values into donut segments: percent of the total and where each one starts.
+//   donutSegments([3, 1]) -> [{ percent: 75, start: 0 }, { percent: 25, start: 75 }]
+export function donutSegments(values) {
+  const total = values.reduce((sum, v) => sum + v, 0);
+  let start = 0;
+  return values.map((value) => {
+    const percent = total === 0 ? 0 : (value / total) * 100;
+    const segment = { value, percent, start };
+    start += percent;
+    return segment;
+  });
+}
+
+// items: [{ name, value, className }]; center: { value, label }
+export function donutChart(items, { center, label, formatValue }) {
+  const size = 42; // viewBox units; the CSS gives the real size
+  const middle = size / 2;
+  const segments = donutSegments(items.map((item) => item.value));
+  const tip = createTooltip(180);
+
+  const chart = svg("svg", {
+      class: "donut-chart",
+      viewBox: `0 0 ${size} ${size}`,
+      role: "list",
+      "aria-label": label,
+    },
+    // grey ring behind the segments
+    svg("circle", { class: "donut-track", cx: middle, cy: middle, r: DONUT_RADIUS }),
+
+    segments.map((segment, i) => {
+      const item = items[i];
+      if (segment.percent === 0) return null;
+
+      const ring = svg("circle", {
+        class: `donut-segment ${item.className}`,
+        cx: middle,
+        cy: middle,
+        r: DONUT_RADIUS,
+        // draw `percent`, then leave the rest of the circle empty
+        "stroke-dasharray": `${segment.percent} ${100 - segment.percent}`,
+        // circles start at 3 o'clock: +25 moves the start to 12 o'clock
+        "stroke-dashoffset": 25 - segment.start,
+        role: "listitem",
+        tabindex: 0,
+        "aria-label": `${item.name}: ${formatValue(item.value)} (${Math.round(segment.percent)}%)`,
+      });
+
+      const show = () =>
+        tip.show([item.name, `${formatValue(item.value)} · ${Math.round(segment.percent)}%`], 90, 20);
+      ring.addEventListener("pointerenter", show);
+      ring.addEventListener("focus", show);
+      ring.addEventListener("pointerleave", tip.hide);
+      ring.addEventListener("blur", tip.hide);
+      return ring;
+    }),
+
+    svg("text", { class: "donut-value", x: middle, y: middle - 1, "text-anchor": "middle" }, center.value),
+    svg("text", { class: "donut-label", x: middle, y: middle + 5, "text-anchor": "middle" }, center.label),
+  );
+
+  return h("div", { class: "chart-inner donut-inner" }, chart, tip.element);
+}
