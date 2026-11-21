@@ -1,5 +1,6 @@
 // Builds the sections of the profile page from the processed data.
 import { h, svg } from "./dom.js";
+import { responsiveChart, lineChart } from "./charts.js";
 import { formatBytes, formatRatio, auditMessage, barPercent } from "./data.js";
 
 export function fullName(user) {
@@ -132,5 +133,50 @@ export function renderError(message, onRetry) {
     h("h2", {}, "Could not load your profile"),
     h("p", { class: "muted" }, message),
     h("button", { class: "btn btn-primary", type: "button", onclick: onRetry }, "Try again"),
+  );
+}
+
+// A card for one graph: title, a sentence that explains the data, and the chart
+function chartCard(title, description, chart) {
+  return h("figure", { class: "chart-card" },
+    h("figcaption", {},
+      h("h3", {}, title),
+      h("p", { class: "muted" }, description),
+    ),
+    chart,
+  );
+}
+
+// Full year on purpose: "Nov 26" could be read as "26 November"
+const formatMonth = (date) =>
+  date.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
+
+// Section 4: statistics (graphs)
+export function renderStatsSection({ xpTimeline }) {
+  const xpChart =
+    xpTimeline.length === 0
+      ? h("p", { class: "muted" }, "No XP yet.")
+      : responsiveChart((width, height) =>
+          lineChart(
+            xpTimeline.map((p) => ({ x: p.date, y: p.total })),
+            {
+              width,
+              height,
+              formatY: formatBytes,
+              formatX: formatMonth,
+              label: `XP over time, from 0 to ${formatBytes(xpTimeline[xpTimeline.length - 1].total)}`,
+            },
+          ),
+        );
+
+  return h("section", { class: "card stats-section", "aria-labelledby": "stats-title" },
+    h("h2", { id: "stats-title" }, "Statistics"),
+    h("div", { class: "chart-grid" },
+      chartCard(
+        "XP over time",
+        "Total XP earned in the main curriculum (div-01), piscines excluded.",
+        xpChart,
+      ),
+    ),
   );
 }
