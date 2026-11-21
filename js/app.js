@@ -1,5 +1,6 @@
 import { signin, graphql, AuthError } from "./api.js";
 import { saveToken, getToken, clearToken, isTokenValid, getUserId } from "./auth.js";
+import { setupGraphiql } from "./graphiql.js";
 import { USER_QUERY, XP_QUERY, PROGRESS_QUERY, SKILLS_QUERY } from "./queries.js";
 import {
   totalXp,
@@ -30,6 +31,39 @@ const button = document.querySelector("#login-button");
 const logoutButton = document.querySelector("#logout-button");
 const profileContent = document.querySelector("#profile-content");
 const greeting = document.querySelector("#greeting");
+const graphiqlPage = document.querySelector("#graphiql-page");
+const tabs = document.querySelectorAll(".tab");
+
+const graphiql = setupGraphiql({
+  getUserId: () => getUserId(getToken()),
+  onAuthError: (error) => {
+    logout();
+    showError(error.message);
+  },
+});
+let graphiqlStarted = false;
+
+// Hash routing: "#/graphiql" shows our GraphiQL, anything else the profile.
+// The URL changes, so Back/Forward and refresh keep the right page.
+function route() {
+  const page = location.hash === "#/graphiql" ? "graphiql" : "profile";
+  profileContent.hidden = page !== "profile";
+  graphiqlPage.hidden = page !== "graphiql";
+
+  tabs.forEach((tab) => {
+    if (tab.dataset.page === page) tab.setAttribute("aria-current", "page");
+    else tab.removeAttribute("aria-current");
+  });
+
+  if (page === "graphiql" && !graphiqlStarted) {
+    graphiql.start();
+    graphiqlStarted = true;
+  }
+}
+
+window.addEventListener("hashchange", () => {
+  if (!appView.hidden) route();
+});
 
 function showLogin() {
   appView.hidden = true;
@@ -40,6 +74,7 @@ function showLogin() {
 function showProfile() {
   loginView.hidden = true;
   appView.hidden = false;
+  route();
   loadProfile();
 }
 
@@ -150,6 +185,9 @@ function logout() {
   profileContent.replaceChildren(); // remove the previous user's data from the page
   profileContent.removeAttribute("aria-busy");
   greeting.textContent = "Profile";
+  graphiql.reset(); // forget the previous user's queries and results
+  graphiqlStarted = false;
+  history.replaceState(null, "", "#/"); // the next login starts on the profile
   showLogin();
 }
 

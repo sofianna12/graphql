@@ -19,7 +19,11 @@ platform's GraphQL API, with statistics graphs built from scratch in SVG.
 - **Statistics (SVG, no chart library)**
   - XP over time (line chart)
   - XP by project, top 10 (bar chart)
+  - Projects pass / fail (donut), with the failed and in-progress projects
+  - Skills (radar chart)
   - Tooltips with mouse, touch and keyboard (← → Home End)
+- **Own GraphiQL** (`#/graphiql`): run any query with your token, with examples
+  of normal, nested, argument and introspection queries
 - Loading skeletons, error state with retry, empty states
 - Responsive down to 320px, dark mode, accessible (ARIA labels, keyboard focus)
 
@@ -43,6 +47,7 @@ All queries are in [`js/queries.js`](js/queries.js).
 | **Normal** | `USER_QUERY` | `user { id login campus auditRatio ... }` |
 | **With arguments** | `XP_QUERY` | `transaction(where: { userId: { _eq: $userId }, type: { _eq: "xp" } }, order_by: { createdAt: asc })` |
 | **Nested** | `PROGRESS_QUERY` | `progress { grade object { name type } }` |
+| **Arguments + distinct_on** | `SKILLS_QUERY` | `transaction(where: { type: { _like: "skill_%" } }, distinct_on: type)` |
 
 Other details:
 
@@ -77,7 +82,8 @@ js/
   data.js           pure functions: totals, formatting, statistics
   dom.js            h() and svg() helpers that build elements safely (no innerHTML)
   profile.js        the profile sections
-  charts.js         generic SVG line and bar charts with tooltips
+  charts.js         generic SVG line, bar, donut and radar charts with tooltips
+  graphiql.js       our own GraphiQL page
 tests/              unit tests for data.js and charts.js
 ```
 
