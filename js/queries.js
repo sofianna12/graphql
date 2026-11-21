@@ -13,6 +13,10 @@ export const USER_QUERY = `
       email: attrs(path: "email")
       campus
       createdAt
+      auditRatio
+      totalUp
+      totalUpBonus
+      totalDown
     }
   }
 `;
@@ -32,6 +36,45 @@ export const XP_QUERY = `
       amount
       createdAt
       path
+      object {
+        name
+        type
+      }
+    }
+  }
+`;
+
+// Nested query + aliases: two lists from one request.
+// - projects: every project attempt, with its object (name, type) nested inside
+// - level: the highest level transaction of div-01 (= current level)
+// grade >= 1 means PASS, grade < 1 means FAIL, grade null means not graded yet.
+export const PROGRESS_QUERY = `
+  query Progress($userId: Int!) {
+    projects: progress(
+      where: {
+        userId: { _eq: $userId }
+        object: { type: { _eq: "project" } }
+      }
+      order_by: { createdAt: desc }
+    ) {
+      grade
+      createdAt
+      path
+      object {
+        name
+        type
+      }
+    }
+    level: transaction(
+      where: {
+        userId: { _eq: $userId }
+        type: { _eq: "level" }
+        event: { path: { _eq: "/athens/div-01" } }
+      }
+      order_by: { amount: desc }
+      limit: 1
+    ) {
+      amount
     }
   }
 `;
