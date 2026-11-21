@@ -16,6 +16,7 @@ import {
   renderAuditSection,
   renderLoading,
   renderError,
+  renderStatsSection,
   fullName,
 } from "./profile.js";
 
@@ -76,11 +77,11 @@ async function loadProfile() {
         recent: recentXp(xp),
       }),
       renderAuditSection(auditStats(user)),
+      renderStatsSection({ xpTimeline: xpOverTime(xp) }),
     );
 
-    // temporary: these values get their own graphs in Milestone 4
+    // temporary: these values get their own graphs in #17 and #22
     console.log("Projects:", projectStats(projects));
-    console.log("XP over time:", xpOverTime(xp));
     console.log("XP by project:", xpByProject(xp));
   } catch (error) {
     if (loadId !== currentLoad) return;
