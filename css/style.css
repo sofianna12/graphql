@@ -327,3 +327,82 @@ body {
 .bar-track { fill: var(--border); }
 .bar-done { fill: var(--accent); }
 .bar-received { fill: var(--muted); }
+
+/* ===== Loading state (skeletons) ===== */
+.skeleton {
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--border) 25%, var(--bg) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-title {
+  height: 1.6rem;
+  width: 60%;
+  margin-bottom: 1.25rem;
+}
+
+.skeleton-line {
+  height: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-line.short {
+  width: 40%;
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+/* Users who asked their system for less motion get a still skeleton */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* ===== Error state ===== */
+.error-card {
+  grid-column: 1 / -1; /* full width */
+  text-align: center;
+}
+
+.error-card h2 {
+  color: var(--error);
+}
+
+/* Hidden on screen, but still read by screen readers */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ===== Small screens ===== */
+@media (max-width: 480px) {
+  .topbar {
+    padding: 0.75rem 1rem;
+  }
+
+  .topbar h1 {
+    font-size: 1.1rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
+  }
+
+  .profile-content {
+    grid-template-columns: 1fr;
+    padding: 1rem 0.75rem;
+  }
+}
