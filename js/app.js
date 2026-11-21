@@ -74,12 +74,12 @@ async function loadProfile() {
     greeting.textContent = `Hi, ${fullName(user).split(" ")[0]}`;
     profileContent.replaceChildren(
       renderUserSection(user),
+      renderAuditSection(auditStats(user)),
       renderXpSection({
         level: currentLevel(level),
         totalXp: totalXp(xp),
         recent: recentXp(xp),
       }),
-      renderAuditSection(auditStats(user)),
       renderStatsSection({
         xpTimeline: xpOverTime(xp),
         xpPerProject: xpByProject(xp),
