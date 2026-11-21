@@ -1,4 +1,4 @@
-import { signin } from "./api.js";
+import { signin, graphql, AuthError } from "./api.js";
 import { saveToken, getToken, clearToken, isTokenValid } from "./auth.js";
 
 const loginView = document.querySelector("#login-view");
@@ -18,6 +18,22 @@ function showLogin() {
 function showProfile() {
   loginView.hidden = true;
   appView.hidden = false;
+  loadProfile();
+}
+
+// Temporary test for issue #7: the real profile data comes in #8-#11
+async function loadProfile() {
+  try {
+    const data = await graphql("{ user { id login } }");
+    console.log(data);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      logout();
+      showError(error.message);
+      return;
+    }
+    console.error(error);
+  }
 }
 
 function showError(message) {
