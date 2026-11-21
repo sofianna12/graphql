@@ -123,3 +123,51 @@ export function lineChart(points, { width, height, formatY, formatX, label }) {
     svg("circle", { class: "chart-dot", cx: lastX, cy: lastY, r: 4 }),
   );
 }
+
+// ---------- Bar chart ----------
+
+// Shortens a text to maxChars, ending with "…" (SVG text has no CSS ellipsis).
+export function truncate(text, maxChars) {
+  if (text.length <= maxChars) return text;
+  return `${text.slice(0, Math.max(1, maxChars - 1))}…`;
+}
+
+export const BAR_ROW_HEIGHT = 28;
+
+// Horizontal bars, one row per item: name | bar | value
+// items: [{ name: string, value: number }] already sorted
+export function barChart(items, { width, formatValue, label }) {
+  const labelWidth = Math.min(170, Math.round(width * 0.4));
+  const valueWidth = 64;
+  const barStart = labelWidth + 8;
+  const barEnd = width - valueWidth;
+  const maxChars = Math.floor(labelWidth / 7); // about 7px per character at 12px
+  const max = Math.max(...items.map((item) => item.value));
+  const height = items.length * BAR_ROW_HEIGHT;
+
+  return svg("svg", {
+      class: "bar-chart",
+      width,
+      height,
+      viewBox: `0 0 ${width} ${height}`,
+      role: "img",
+      "aria-label": label,
+    },
+    svg("title", {}, label),
+    items.map((item, i) => {
+      const y = i * BAR_ROW_HEIGHT;
+      const middle = y + BAR_ROW_HEIGHT / 2;
+      const barWidth = Math.max(2, scale(item.value, 0, max, 0, barEnd - barStart));
+
+      return svg("g", { class: "bar-row" },
+        // the full name and value appear when hovering a shortened row
+        svg("title", {}, `${item.name}: ${formatValue(item.value)}`),
+        svg("text", { class: "axis-label bar-name", x: 0, y: middle, "dominant-baseline": "middle" },
+          truncate(item.name, maxChars)),
+        svg("rect", { class: "bar-rect", x: barStart, y: y + 6, width: barWidth, height: BAR_ROW_HEIGHT - 12, rx: 3 }),
+        svg("text", { class: "axis-label bar-value", x: barStart + barWidth + 6, y: middle, "dominant-baseline": "middle" },
+          formatValue(item.value)),
+      );
+    }),
+  );
+}

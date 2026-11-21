@@ -1,6 +1,6 @@
 // Builds the sections of the profile page from the processed data.
 import { h, svg } from "./dom.js";
-import { responsiveChart, lineChart } from "./charts.js";
+import { responsiveChart, lineChart, barChart, BAR_ROW_HEIGHT } from "./charts.js";
 import { formatBytes, formatRatio, auditMessage, barPercent } from "./data.js";
 
 export function fullName(user) {
@@ -152,7 +152,9 @@ const formatMonth = (date) =>
   date.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
 
 // Section 4: statistics (graphs)
-export function renderStatsSection({ xpTimeline }) {
+const TOP_PROJECTS = 10;
+
+export function renderStatsSection({ xpTimeline, xpPerProject }) {
   const xpChart =
     xpTimeline.length === 0
       ? h("p", { class: "muted" }, "No XP yet.")
@@ -169,6 +171,23 @@ export function renderStatsSection({ xpTimeline }) {
           ),
         );
 
+  const topProjects = xpPerProject.slice(0, TOP_PROJECTS);
+  const projectChart =
+    topProjects.length === 0
+      ? h("p", { class: "muted" }, "No project XP yet.")
+      : responsiveChart(
+          (width) =>
+            barChart(
+              topProjects.map((p) => ({ name: p.name, value: p.amount })),
+              {
+                width,
+                formatValue: formatBytes,
+                label: `XP by project, highest: ${topProjects[0].name} with ${formatBytes(topProjects[0].amount)}`,
+              },
+            ),
+          topProjects.length * BAR_ROW_HEIGHT,
+        );
+
   return h("section", { class: "card stats-section", "aria-labelledby": "stats-title" },
     h("h2", { id: "stats-title" }, "Statistics"),
     h("div", { class: "chart-grid" },
@@ -176,6 +195,11 @@ export function renderStatsSection({ xpTimeline }) {
         "XP over time",
         "Total XP earned in the main curriculum (div-01), piscines excluded.",
         xpChart,
+      ),
+      chartCard(
+        "XP by project",
+        `Top ${topProjects.length} of ${xpPerProject.length} projects by XP earned (exercises excluded).`,
+        projectChart,
       ),
     ),
   );

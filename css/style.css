@@ -476,3 +476,20 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+.bar-rect {
+  fill: var(--accent);
+  opacity: 0.85;
+}
+
+.bar-row:hover .bar-rect {
+  opacity: 1;
+}
+
+.bar-name {
+  fill: var(--text);
+}
+
+.bar-value {
+  font-weight: 600;
+}
