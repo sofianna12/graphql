@@ -12,6 +12,7 @@ import {
   xpOverTime,
   xpByProject,
 } from "./data.js";
+import { renderUserSection, fullName } from "./profile.js";
 
 const loginView = document.querySelector("#login-view");
 const appView = document.querySelector("#app-view");
@@ -20,6 +21,7 @@ const errorBox = document.querySelector("#login-error");
 const button = document.querySelector("#login-button");
 const logoutButton = document.querySelector("#logout-button");
 const profileContent = document.querySelector("#profile-content");
+const greeting = document.querySelector("#greeting");
 
 function showLogin() {
   appView.hidden = true;
@@ -50,7 +52,10 @@ async function loadProfile() {
 
     const audits = auditStats(user);
 
-    // temporary: the profile UI comes in Milestone 3
+    greeting.textContent = `Hi, ${fullName(user).split(" ")[0]}`;
+    profileContent.replaceChildren(renderUserSection(user));
+
+    // temporary: these values get their own sections in #13 and #14
     console.log("XP:", formatBytes(totalXp(xp)));
     console.log("Level:", currentLevel(level));
     console.log(
@@ -117,6 +122,7 @@ form.addEventListener("submit", async (event) => {
 function logout() {
   clearToken();
   profileContent.replaceChildren(); // remove the previous user's data from the page
+  greeting.textContent = "Profile";
   showLogin();
 }
 

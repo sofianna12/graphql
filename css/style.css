@@ -166,3 +166,49 @@ body {
   margin: 0;
   font-size: 1.3rem;
 }
+
+/* ===== Profile content ===== */
+.profile-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.card {
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.card > .muted {
+  margin: 0.2rem 0 1rem;
+}
+
+/* label / value pairs in two columns */
+.details {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.details dt {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.details dd {
+  margin: 0;
+  overflow-wrap: anywhere; /* long emails must not overflow the card */
+}
