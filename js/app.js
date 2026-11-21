@@ -12,7 +12,7 @@ import {
   xpOverTime,
   xpByProject,
 } from "./data.js";
-import { renderUserSection, fullName } from "./profile.js";
+import { renderUserSection, renderXpSection, fullName } from "./profile.js";
 
 const loginView = document.querySelector("#login-view");
 const appView = document.querySelector("#app-view");
@@ -53,18 +53,22 @@ async function loadProfile() {
     const audits = auditStats(user);
 
     greeting.textContent = `Hi, ${fullName(user).split(" ")[0]}`;
-    profileContent.replaceChildren(renderUserSection(user));
+    profileContent.replaceChildren(
+      renderUserSection(user),
+      renderXpSection({
+        level: currentLevel(level),
+        totalXp: totalXp(xp),
+        recent: recentXp(xp),
+      }),
+    );
 
-    // temporary: these values get their own sections in #13 and #14
-    console.log("XP:", formatBytes(totalXp(xp)));
-    console.log("Level:", currentLevel(level));
+    // temporary: these values get their own sections in #14 and in Milestone 4
     console.log(
       "Audit ratio:", formatRatio(audits.ratio),
       "| Done:", formatBytes(audits.done), "+", formatBytes(audits.bonus),
       "| Received:", formatBytes(audits.received)
     );
     console.log("Projects:", projectStats(projects));
-    console.log("Recent XP:", recentXp(xp));
     console.log("XP over time:", xpOverTime(xp));
     console.log("XP by project:", xpByProject(xp));
   } catch (error) {
