@@ -64,3 +64,16 @@ test("currentLevel handles an empty list", () => {
   assert.equal(data.currentLevel([{ amount: 28 }]), 28);
   assert.equal(data.currentLevel([]), 0);
 });
+
+test("auditMessage depends on the ratio", () => {
+  assert.equal(data.auditMessage(0.5).level, "bad");
+  assert.equal(data.auditMessage(0.9).level, "warning");
+  assert.equal(data.auditMessage(1.396).text, "Almost perfect!");
+  assert.equal(data.auditMessage(2).text, "Perfect!");
+});
+
+test("barPercent is relative to the max and stays between 0 and 100", () => {
+  assert.equal(data.barPercent(50, 100), 50);
+  assert.equal(data.barPercent(100, 100), 100);
+  assert.equal(data.barPercent(10, 0), 0);
+});

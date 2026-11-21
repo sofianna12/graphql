@@ -1,6 +1,6 @@
 // Builds the sections of the profile page from the processed data.
-import { h } from "./dom.js";
-import { formatBytes } from "./data.js";
+import { h, svg } from "./dom.js";
+import { formatBytes, formatRatio, auditMessage, barPercent } from "./data.js";
 
 export function fullName(user) {
   const name = [user.firstName, user.lastName]
@@ -65,5 +65,45 @@ export function renderXpSection({ level, totalXp, recent }) {
             ),
           ),
         ),
+  );
+}
+
+// One horizontal bar drawn with SVG: a grey track and a colored part on top.
+function bar(percent, className) {
+  return svg("svg", {
+      class: "bar",
+      viewBox: "0 0 100 8",
+      preserveAspectRatio: "none", // stretch to the full width of the card
+      "aria-hidden": "true", // the numbers next to it are read instead
+    },
+    svg("rect", { class: "bar-track", x: 0, y: 0, width: 100, height: 8, rx: 4 }),
+    svg("rect", { class: `bar-fill ${className}`, x: 0, y: 0, width: percent, height: 8, rx: 4 }),
+  );
+}
+
+// Section 3: audits
+export function renderAuditSection({ ratio, done, bonus, received }) {
+  const max = Math.max(done + bonus, received);
+  const message = auditMessage(ratio);
+
+  return h("section", { class: "card", "aria-labelledby": "audit-title" },
+    h("h2", { id: "audit-title" }, "Audits"),
+    h("div", { class: "stats" },
+      h("div", { class: "stat" },
+        h("span", { class: `stat-value ratio-${message.level}` }, formatRatio(ratio)),
+        h("span", { class: "stat-label" }, `Audit ratio · ${message.text}`),
+      ),
+    ),
+    h("div", { class: "audit-bars" },
+      h("span", { class: "audit-label" }, "Done"),
+      bar(barPercent(done + bonus, max), "bar-done"),
+      h("span", { class: "audit-value" },
+        formatBytes(done),
+        bonus > 0 && h("small", {}, ` + ${formatBytes(bonus)}`),
+      ),
+      h("span", { class: "audit-label" }, "Received"),
+      bar(barPercent(received, max), "bar-received"),
+      h("span", { class: "audit-value" }, formatBytes(received)),
+    ),
   );
 }

@@ -101,3 +101,17 @@ export function xpByProject(xp) {
 function lastPathPart(path) {
   return path.split("/").pop();
 }
+
+// A short message about the audit ratio, with a level used for the color.
+export function auditMessage(ratio) {
+  if (ratio < 0.8) return { text: "Careful, buddy!", level: "bad" };
+  if (ratio < 1) return { text: "Make more audits!", level: "warning" };
+  if (ratio < 1.5) return { text: "Almost perfect!", level: "good" };
+  return { text: "Perfect!", level: "good" };
+}
+
+// Width of each bar as a percentage of the biggest value (0-100).
+export function barPercent(value, max) {
+  if (max <= 0) return 0;
+  return Math.max(0, Math.min(100, (value / max) * 100));
+}

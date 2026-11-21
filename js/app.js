@@ -2,8 +2,6 @@ import { signin, graphql, AuthError } from "./api.js";
 import { saveToken, getToken, clearToken, isTokenValid, getUserId } from "./auth.js";
 import { USER_QUERY, XP_QUERY, PROGRESS_QUERY } from "./queries.js";
 import {
-  formatBytes,
-  formatRatio,
   totalXp,
   currentLevel,
   recentXp,
@@ -12,7 +10,7 @@ import {
   xpOverTime,
   xpByProject,
 } from "./data.js";
-import { renderUserSection, renderXpSection, fullName } from "./profile.js";
+import { renderUserSection, renderXpSection, renderAuditSection, fullName } from "./profile.js";
 
 const loginView = document.querySelector("#login-view");
 const appView = document.querySelector("#app-view");
@@ -50,8 +48,6 @@ async function loadProfile() {
     const xp = xpData.transaction;
     const { projects, level } = progressData;
 
-    const audits = auditStats(user);
-
     greeting.textContent = `Hi, ${fullName(user).split(" ")[0]}`;
     profileContent.replaceChildren(
       renderUserSection(user),
@@ -60,14 +56,10 @@ async function loadProfile() {
         totalXp: totalXp(xp),
         recent: recentXp(xp),
       }),
+      renderAuditSection(auditStats(user)),
     );
 
-    // temporary: these values get their own sections in #14 and in Milestone 4
-    console.log(
-      "Audit ratio:", formatRatio(audits.ratio),
-      "| Done:", formatBytes(audits.done), "+", formatBytes(audits.bonus),
-      "| Received:", formatBytes(audits.received)
-    );
+    // temporary: these values get their own graphs in Milestone 4
     console.log("Projects:", projectStats(projects));
     console.log("XP over time:", xpOverTime(xp));
     console.log("XP by project:", xpByProject(xp));
