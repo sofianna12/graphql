@@ -1,6 +1,6 @@
 import { signin, graphql, AuthError } from "./api.js";
-import { saveToken, getToken, clearToken, isTokenValid } from "./auth.js";
-import { USER_QUERY } from "./queries.js";
+import { saveToken, getToken, clearToken, isTokenValid, getUserId } from "./auth.js";
+import { USER_QUERY, XP_QUERY } from "./queries.js";
 
 const loginView = document.querySelector("#login-view");
 const appView = document.querySelector("#app-view");
@@ -25,9 +25,21 @@ function showProfile() {
 async function loadProfile() {
   try {
     // Normal query: user is a list with only the logged-in user inside
-    const data = await graphql(USER_QUERY);
-    const user = data.user[0];
-    console.log(user); // temporary: the profile UI comes in Milestone 3
+    const userId = getUserId(getToken());
+
+    // Both queries run at the same time instead of one after the other
+    const [userData, xpData] = await Promise.all([
+      graphql(USER_QUERY),
+      graphql(XP_QUERY, { userId }),
+    ]);
+
+    const user = userData.user[0];
+    const xp = xpData.transaction;
+
+    // temporary: the profile UI comes in Milestone 3
+    const totalXp = xp.reduce((sum, t) => sum + t.amount, 0);
+    console.log(user);
+    console.log(`${xp.length} XP transactions, total ${totalXp} (= ${Math.round(totalXp / 1000)} kB)`);
   } catch (error) {
     if (error instanceof AuthError) {
       logout();
