@@ -1,8 +1,22 @@
 import { signin } from "./api.js";
+import { saveToken, getToken, clearToken, isTokenValid } from "./auth.js";
 
+const loginView = document.querySelector("#login-view");
+const appView = document.querySelector("#app-view");
 const form = document.querySelector("#login-form");
 const errorBox = document.querySelector("#login-error");
 const button = document.querySelector("#login-button");
+
+function showLogin() {
+  appView.hidden = true;
+  loginView.hidden = false;
+  form.identifier.focus();
+}
+
+function showProfile() {
+  loginView.hidden = true;
+  appView.hidden = false;
+}
 
 function showError(message) {
   // textContent (not innerHTML) so the text is never interpreted as HTML
@@ -36,10 +50,20 @@ form.addEventListener("submit", async (event) => {
   setLoading(true);
   try {
     const token = await signin(identifier, password);
-    console.log(token);
+    saveToken(token);
+    form.reset(); // don't leave the password in the form
+    showProfile();
   } catch (error) {
     showError(error.message);
   } finally {
     setLoading(false);
   }
 });
+
+// On page load: stay logged in if we still have a valid token
+if (isTokenValid(getToken())) {
+  showProfile();
+} else {
+  clearToken();
+  showLogin();
+}
