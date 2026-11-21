@@ -160,12 +160,17 @@ export function renderStatsSection({ xpTimeline, xpPerProject }) {
       ? h("p", { class: "muted" }, "No XP yet.")
       : responsiveChart((width, height) =>
           lineChart(
-            xpTimeline.map((p) => ({ x: p.date, y: p.total })),
+            xpTimeline.map((p) => ({ x: p.date, y: p.total, amount: p.amount, name: p.name })),
             {
               width,
               height,
               formatY: formatBytes,
               formatX: formatMonth,
+              tooltip: (point) => [
+                formatDate(point.x),
+                `${formatBytes(point.y)} total`,
+                `+${formatBytes(point.amount)} · ${point.name}`,
+              ],
               label: `XP over time, from 0 to ${formatBytes(xpTimeline[xpTimeline.length - 1].total)}`,
             },
           ),

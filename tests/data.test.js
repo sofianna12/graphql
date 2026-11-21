@@ -49,6 +49,12 @@ test("xpOverTime is cumulative", () => {
   assert.deepEqual(data.xpOverTime(xp).map((p) => p.total), [100, 400, 450, 950]);
 });
 
+test("xpOverTime keeps the amount and name of each point", () => {
+  const second = data.xpOverTime(xp)[1];
+  assert.equal(second.amount, 300);
+  assert.equal(second.name, "forum");
+});
+
 test("xpByProject groups by project, ignores exercises, sorts highest first", () => {
   assert.deepEqual(data.xpByProject(xp), [
     { name: "lem-in", amount: 500 },
