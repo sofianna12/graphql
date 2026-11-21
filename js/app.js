@@ -1,6 +1,6 @@
 import { signin, graphql, AuthError } from "./api.js";
 import { saveToken, getToken, clearToken, isTokenValid, getUserId } from "./auth.js";
-import { USER_QUERY, XP_QUERY } from "./queries.js";
+import { USER_QUERY, XP_QUERY, PROGRESS_QUERY } from "./queries.js";
 
 const loginView = document.querySelector("#login-view");
 const appView = document.querySelector("#app-view");
@@ -24,22 +24,27 @@ function showProfile() {
 
 async function loadProfile() {
   try {
-    // Normal query: user is a list with only the logged-in user inside
     const userId = getUserId(getToken());
 
-    // Both queries run at the same time instead of one after the other
-    const [userData, xpData] = await Promise.all([
+    // All queries run at the same time instead of one after the other
+    const [userData, xpData, progressData] = await Promise.all([
       graphql(USER_QUERY),
       graphql(XP_QUERY, { userId }),
+      graphql(PROGRESS_QUERY, { userId }),
     ]);
 
-    const user = userData.user[0];
+    const user = userData.user[0]; // user is a list with only the logged-in user
     const xp = xpData.transaction;
+    const { projects, level } = progressData;
 
-    // temporary: the profile UI comes in Milestone 3
+    // temporary: the calculations move to data.js in #11, the UI comes in Milestone 3
     const totalXp = xp.reduce((sum, t) => sum + t.amount, 0);
     console.log(user);
     console.log(`${xp.length} XP transactions, total ${totalXp} (= ${Math.round(totalXp / 1000)} kB)`);
+    console.log("First XP project:", xp[0]?.object?.name);
+    console.log("Audit ratio:", user.auditRatio, "| up:", user.totalUp, "| bonus:", user.totalUpBonus, "| down:", user.totalDown);
+    console.log("Level:", level[0]?.amount);
+    console.log(`${projects.length} project attempts`);
   } catch (error) {
     if (error instanceof AuthError) {
       logout();
