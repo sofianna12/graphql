@@ -98,3 +98,22 @@ test("projectLists names failed and in-progress projects", () => {
   ]);
   assert.deepEqual(lists.inProgress.map((p) => p.name), ["shop"]);
 });
+
+test("skillName makes readable names", () => {
+  assert.equal(data.skillName("skill_back-end"), "Back-end");
+  assert.equal(data.skillName("skill_js"), "JS");
+  assert.equal(data.skillName("skill_prog"), "Prog");
+});
+
+test("topSkills keeps the highest value per skill, strongest first", () => {
+  const skills = [
+    { type: "skill_go", amount: 30 },
+    { type: "skill_go", amount: 55 },
+    { type: "skill_js", amount: 40 },
+    { type: "skill_algo", amount: 10 },
+  ];
+  assert.deepEqual(data.topSkills(skills, 2), [
+    { name: "Go", value: 55 },
+    { name: "JS", value: 40 },
+  ]);
+});

@@ -1,6 +1,6 @@
 // Builds the sections of the profile page from the processed data.
 import { h, svg } from "./dom.js";
-import { responsiveChart, lineChart, barChart, donutChart, BAR_ROW_HEIGHT } from "./charts.js";
+import { responsiveChart, lineChart, barChart, donutChart, radarChart, BAR_ROW_HEIGHT } from "./charts.js";
 import { formatBytes, formatRatio, auditMessage, barPercent } from "./data.js";
 
 export function fullName(user) {
@@ -210,7 +210,25 @@ function passFailChart({ passed, failed, inProgress }, lists) {
   );
 }
 
-export function renderStatsSection({ xpTimeline, xpPerProject, projectResults, projectNames }) {
+// Skills radar; with fewer than 3 skills a radar has no shape, so bars are used
+function skillsChart(skills) {
+  if (skills.length === 0) return h("p", { class: "muted" }, "No skills yet.");
+
+  const options = {
+    formatValue: (value) => `${value}%`,
+    label: `Skills: ${skills.map((s) => `${s.name} ${s.value}%`).join(", ")}`,
+  };
+
+  if (skills.length < 3) {
+    return responsiveChart(
+      (width) => barChart(skills, { ...options, width }),
+      skills.length * BAR_ROW_HEIGHT,
+    );
+  }
+  return responsiveChart((width) => radarChart(skills, { ...options, width }), 380);
+}
+
+export function renderStatsSection({ xpTimeline, xpPerProject, projectResults, projectNames, skills }) {
   const xpChart =
     xpTimeline.length === 0
       ? h("p", { class: "muted" }, "No XP yet.")
@@ -266,6 +284,11 @@ export function renderStatsSection({ xpTimeline, xpPerProject, projectResults, p
         "Projects pass / fail",
         "Every graded project attempt: grade ≥ 1 is a pass, below 1 is a fail. Projects not graded yet are not in the chart.",
         passFailChart(projectResults, projectNames),
+      ),
+      chartCard(
+        "Skills",
+        `Your ${skills.length} strongest skills, from 0 to 100%.`,
+        skillsChart(skills),
       ),
     ),
   );

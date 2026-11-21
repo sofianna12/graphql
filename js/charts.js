@@ -355,3 +355,79 @@ export function donutChart(items, { center, label, formatValue }) {
 
   return h("div", { class: "chart-inner donut-inner" }, chart, tip.element);
 }
+
+// ---------- Radar chart ----------
+
+// Position of the i-th of n axes at a given distance from the center.
+// The first axis points up (-90°) and the others go clockwise.
+export function radarPoint(i, n, distance, cx, cy) {
+  const angle = -Math.PI / 2 + (i * 2 * Math.PI) / n;
+  return [cx + distance * Math.cos(angle), cy + distance * Math.sin(angle)];
+}
+
+// items: [{ name, value }] with value from 0 to max (default 100)
+export function radarChart(items, { width, label, formatValue, max = 100 }) {
+  const size = Math.min(width, 380);
+  const center = size / 2;
+  const radius = center - 48; // room for the labels around
+  const n = items.length;
+  const tip = createTooltip(size);
+
+  const ring = (fraction) =>
+    items.map((_, i) => radarPoint(i, n, radius * fraction, center, center).map((v) => v.toFixed(1)).join(",")).join(" ");
+
+  const points = items.map((item, i) => radarPoint(i, n, (Math.min(item.value, max) / max) * radius, center, center));
+
+  const chart = svg("svg", {
+      class: "radar-chart",
+      width: size,
+      height: size,
+      viewBox: `0 0 ${size} ${size}`,
+      role: "list",
+      "aria-label": label,
+    },
+    // background rings at 25%, 50%, 75% and 100%
+    [0.25, 0.5, 0.75, 1].map((f) => svg("polygon", { class: "radar-ring", points: ring(f) })),
+
+    // one axis line and one label per skill
+    items.map((item, i) => {
+      const [x, y] = radarPoint(i, n, radius, center, center);
+      const [lx, ly] = radarPoint(i, n, radius + 14, center, center);
+      const side = lx - center;
+      const anchor = Math.abs(side) < 8 ? "middle" : side > 0 ? "start" : "end";
+      return svg("g", {},
+        svg("line", { class: "radar-axis", x1: center, y1: center, x2: x, y2: y }),
+        svg("text", { class: "axis-label", x: lx, y: ly, "text-anchor": anchor, "dominant-baseline": "middle" }, item.name),
+      );
+    }),
+
+    // the filled shape of the values
+    svg("polygon", { class: "radar-shape", points: points.map((p) => p.map((v) => v.toFixed(1)).join(",")).join(" ") }),
+
+    // one focusable dot per value, with a tooltip
+    items.map((item, i) => {
+      const [x, y] = points[i];
+      const dot = svg("circle", {
+        class: "chart-dot radar-dot",
+        cx: x,
+        cy: y,
+        r: 4,
+        role: "listitem",
+        tabindex: 0,
+        "aria-label": `${item.name}: ${formatValue(item.value)}`,
+      });
+      const show = () => tip.show([item.name, formatValue(item.value)], x, y - 10);
+      dot.addEventListener("pointerenter", show);
+      dot.addEventListener("focus", show);
+      dot.addEventListener("pointerleave", tip.hide);
+      dot.addEventListener("blur", tip.hide);
+      return dot;
+    }),
+  );
+
+  // the outer box centers the chart; the inner box is exactly the chart's size,
+  // so the tooltip coordinates match the SVG ones
+  return h("div", { class: "radar-wrap" },
+    h("div", { class: "chart-inner" }, chart, tip.element),
+  );
+}

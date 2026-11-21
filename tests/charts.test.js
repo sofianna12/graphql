@@ -1,7 +1,7 @@
 // Tests for the pure helpers in js/charts.js.  Run: node --test
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { scale, niceTicks, monthTicks, linePath, truncate, nearestIndex, donutSegments } from "../js/charts.js";
+import { scale, niceTicks, monthTicks, linePath, truncate, nearestIndex, donutSegments, radarPoint } from "../js/charts.js";
 
 test("scale maps a value proportionally", () => {
   assert.equal(scale(5, 0, 10, 0, 200), 100);
@@ -56,4 +56,11 @@ test("donutSegments gives percents and start positions", () => {
     { value: 1, percent: 25, start: 75 },
   ]);
   assert.deepEqual(donutSegments([0, 0]).map((s) => s.percent), [0, 0]);
+});
+
+test("radarPoint: the first axis points up, the next ones go clockwise", () => {
+  const round = ([x, y]) => [Math.round(x), Math.round(y)];
+  assert.deepEqual(round(radarPoint(0, 4, 10, 50, 50)), [50, 40]); // up
+  assert.deepEqual(round(radarPoint(1, 4, 10, 50, 50)), [60, 50]); // right
+  assert.deepEqual(round(radarPoint(2, 4, 10, 50, 50)), [50, 60]); // down
 });
