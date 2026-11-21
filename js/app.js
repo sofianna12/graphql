@@ -6,6 +6,8 @@ const appView = document.querySelector("#app-view");
 const form = document.querySelector("#login-form");
 const errorBox = document.querySelector("#login-error");
 const button = document.querySelector("#login-button");
+const logoutButton = document.querySelector("#logout-button");
+const profileContent = document.querySelector("#profile-content");
 
 function showLogin() {
   appView.hidden = true;
@@ -59,6 +61,14 @@ form.addEventListener("submit", async (event) => {
     setLoading(false);
   }
 });
+
+function logout() {
+  clearToken();
+  profileContent.replaceChildren(); // remove the previous user's data from the page
+  showLogin();
+}
+
+logoutButton.addEventListener("click", logout);
 
 // On page load: stay logged in if we still have a valid token
 if (isTokenValid(getToken())) {
