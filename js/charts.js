@@ -49,6 +49,43 @@ export function linePath(points) {
     .join(" ");
 }
 
+// Index of the value in a sorted list that is closest to `value` (binary search).
+//   nearestIndex([10, 20, 30], 24) -> 1
+export function nearestIndex(sorted, value) {
+  if (sorted.length === 0) return -1;
+  let low = 0;
+  let high = sorted.length - 1;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (sorted[middle] < value) low = middle + 1;
+    else high = middle;
+  }
+  // `low` is the first value >= value; the one before it may be closer
+  if (low > 0 && value - sorted[low - 1] <= sorted[low] - value) return low - 1;
+  return low;
+}
+
+// ---------- Tooltip ----------
+
+// A small HTML box placed over the chart. Lines: first one is bold.
+function createTooltip(chartWidth) {
+  const element = h("div", { class: "chart-tooltip", role: "status", "aria-live": "polite", hidden: true });
+  return {
+    element,
+    show(lines, x, y) {
+      element.replaceChildren(...lines.map((line, i) => h(i === 0 ? "strong" : "span", {}, line)));
+      element.style.left = `${x}px`;
+      element.style.top = `${y}px`;
+      // near the edges, align the box so it stays inside the chart
+      element.dataset.align = x < 90 ? "left" : x > chartWidth - 90 ? "right" : "center";
+      element.hidden = false;
+    },
+    hide() {
+      element.hidden = true;
+    },
+  };
+}
+
 // ---------- Responsive wrapper ----------
 
 // Draws the chart with the real width of its box, and draws it again when the
@@ -71,8 +108,9 @@ export function responsiveChart(draw, height = 260) {
 
 // ---------- Line chart ----------
 
-// points: [{ x: Date, y: number }] sorted by x
-export function lineChart(points, { width, height, formatY, formatX, label }) {
+// points: [{ x: Date, y: number, ... }] sorted by x
+// tooltip(point) returns the lines shown for a point
+export function lineChart(points, { width, height, formatY, formatX, label, tooltip }) {
   const margin = { top: 16, right: 16, bottom: 28, left: 64 };
   const innerLeft = margin.left;
   const innerRight = width - margin.right;
@@ -95,15 +133,56 @@ export function lineChart(points, { width, height, formatY, formatX, label }) {
 
   const xTicks = monthTicks(points[0].x, points[points.length - 1].x, width < 420 ? 3 : 5);
 
-  return svg("svg", {
+  // ----- interaction: a vertical line, a dot and a tooltip on the nearest point -----
+  const tip = createTooltip(width);
+  const focusLine = svg("line", { class: "focus-line", y1: innerTop, y2: innerBottom, visibility: "hidden" });
+  const focusDot = svg("circle", { class: "chart-dot", r: 5, visibility: "hidden" });
+  const xs = coords.map(([x]) => x);
+  let active = -1;
+
+  function showPoint(index) {
+    active = index;
+    const [x, y] = coords[index];
+    focusLine.setAttribute("x1", x);
+    focusLine.setAttribute("x2", x);
+    focusDot.setAttribute("cx", x);
+    focusDot.setAttribute("cy", y);
+    focusLine.setAttribute("visibility", "visible");
+    focusDot.setAttribute("visibility", "visible");
+    tip.show(tooltip(points[index]), x, y - 12);
+  }
+
+  function hidePoint() {
+    focusLine.setAttribute("visibility", "hidden");
+    focusDot.setAttribute("visibility", "hidden");
+    tip.hide();
+  }
+
+  // pointer events work with mouse, pen and touch
+  const onPointer = (event) => {
+    const box = chart.getBoundingClientRect();
+    showPoint(nearestIndex(xs, event.clientX - box.left));
+  };
+  const overlay = svg("rect", {
+    class: "chart-overlay",
+    x: innerLeft,
+    y: innerTop,
+    width: innerRight - innerLeft,
+    height: innerBottom - innerTop,
+  });
+  overlay.addEventListener("pointermove", onPointer);
+  overlay.addEventListener("pointerdown", onPointer);
+  overlay.addEventListener("pointerleave", hidePoint);
+
+  const chart = svg("svg", {
       class: "line-chart",
       width,
       height,
       viewBox: `0 0 ${width} ${height}`,
       role: "img",
-      "aria-label": label,
+      "aria-label": `${label}. Use the left and right arrow keys to read each point.`,
+      tabindex: 0, // keyboard users can focus the chart and use the arrow keys
     },
-    svg("title", {}, label),
 
     // horizontal grid lines with the Y labels
     yTicks.map((tick) =>
@@ -121,7 +200,28 @@ export function lineChart(points, { width, height, formatY, formatX, label }) {
     svg("path", { class: "chart-area", d: area }),
     svg("path", { class: "chart-line", d: line }),
     svg("circle", { class: "chart-dot", cx: lastX, cy: lastY, r: 4 }),
+    focusLine,
+    focusDot,
+    overlay,
   );
+
+  // keyboard: arrows move between points, Home/End jump to the first/last one
+  chart.addEventListener("keydown", (event) => {
+    const last = points.length - 1;
+    const moves = {
+      ArrowLeft: Math.max(0, active - 1),
+      ArrowRight: Math.min(last, active + 1),
+      Home: 0,
+      End: last,
+    };
+    if (!(event.key in moves)) return;
+    event.preventDefault(); // don't scroll the page
+    showPoint(moves[event.key]);
+  });
+  chart.addEventListener("focus", () => showPoint(active >= 0 ? active : points.length - 1));
+  chart.addEventListener("blur", hidePoint);
+
+  return h("div", { class: "chart-inner" }, chart, tip.element);
 }
 
 // ---------- Bar chart ----------
@@ -137,6 +237,7 @@ export const BAR_ROW_HEIGHT = 28;
 // Horizontal bars, one row per item: name | bar | value
 // items: [{ name: string, value: number }] already sorted
 export function barChart(items, { width, formatValue, label }) {
+  const tip = createTooltip(width);
   const labelWidth = Math.min(170, Math.round(width * 0.4));
   const valueWidth = 64;
   const barStart = labelWidth + 8;
@@ -145,29 +246,43 @@ export function barChart(items, { width, formatValue, label }) {
   const max = Math.max(...items.map((item) => item.value));
   const height = items.length * BAR_ROW_HEIGHT;
 
-  return svg("svg", {
+  const chart = svg("svg", {
       class: "bar-chart",
       width,
       height,
       viewBox: `0 0 ${width} ${height}`,
-      role: "img",
+      role: "list",
       "aria-label": label,
     },
-    svg("title", {}, label),
     items.map((item, i) => {
       const y = i * BAR_ROW_HEIGHT;
       const middle = y + BAR_ROW_HEIGHT / 2;
       const barWidth = Math.max(2, scale(item.value, 0, max, 0, barEnd - barStart));
 
-      return svg("g", { class: "bar-row" },
-        // the full name and value appear when hovering a shortened row
-        svg("title", {}, `${item.name}: ${formatValue(item.value)}`),
+      const row = svg("g", {
+          class: "bar-row",
+          role: "listitem",
+          tabindex: 0, // each bar can be reached with Tab
+          "aria-label": `${item.name}: ${formatValue(item.value)}`,
+        },
+        // invisible full-width rectangle, so the whole row reacts to the pointer
+        svg("rect", { class: "bar-hit", x: 0, y, width, height: BAR_ROW_HEIGHT }),
         svg("text", { class: "axis-label bar-name", x: 0, y: middle, "dominant-baseline": "middle" },
           truncate(item.name, maxChars)),
         svg("rect", { class: "bar-rect", x: barStart, y: y + 6, width: barWidth, height: BAR_ROW_HEIGHT - 12, rx: 3 }),
         svg("text", { class: "axis-label bar-value", x: barStart + barWidth + 6, y: middle, "dominant-baseline": "middle" },
           formatValue(item.value)),
       );
+
+      // the full name (it may be cut with "…") and the value
+      const show = () => tip.show([item.name, formatValue(item.value)], barStart + barWidth / 2, y + 4);
+      row.addEventListener("pointerenter", show);
+      row.addEventListener("focus", show);
+      row.addEventListener("pointerleave", tip.hide);
+      row.addEventListener("blur", tip.hide);
+      return row;
     }),
   );
+
+  return h("div", { class: "chart-inner" }, chart, tip.element);
 }

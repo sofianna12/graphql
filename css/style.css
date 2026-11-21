@@ -493,3 +493,56 @@ body {
 .bar-value {
   font-weight: 600;
 }
+
+/* ===== Chart interaction (tooltips, focus) ===== */
+.chart-inner {
+  position: relative; /* the tooltip is positioned inside it */
+}
+
+.chart-tooltip {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem 0.65rem;
+  border-radius: 6px;
+  background: var(--text);
+  color: var(--surface);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+  pointer-events: none; /* never blocks the pointer */
+  transform: translate(-50%, -100%);
+}
+
+.chart-tooltip[data-align="left"] { transform: translate(0, -100%); }
+.chart-tooltip[data-align="right"] { transform: translate(-100%, -100%); }
+
+.chart-overlay {
+  fill: transparent;
+  cursor: crosshair;
+}
+
+.line-chart {
+  touch-action: pan-y; /* on phones: drag sideways to read points, scroll up/down normally */
+}
+
+.focus-line {
+  stroke: var(--muted);
+  stroke-dasharray: 4 3;
+}
+
+.bar-hit {
+  fill: transparent;
+}
+
+.line-chart:focus-visible,
+.bar-row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.bar-row:focus-visible .bar-rect {
+  opacity: 1;
+}

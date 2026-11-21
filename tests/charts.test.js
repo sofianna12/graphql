@@ -1,7 +1,7 @@
 // Tests for the pure helpers in js/charts.js.  Run: node --test
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { scale, niceTicks, monthTicks, linePath, truncate } from "../js/charts.js";
+import { scale, niceTicks, monthTicks, linePath, truncate, nearestIndex } from "../js/charts.js";
 
 test("scale maps a value proportionally", () => {
   assert.equal(scale(5, 0, 10, 0, 200), 100);
@@ -39,4 +39,13 @@ test("truncate shortens long names with an ellipsis", () => {
   assert.equal(truncate("forum", 10), "forum");
   assert.equal(truncate("real-time-forum-typing-in-progress", 10), "real-time…");
   assert.equal(truncate("real-time-forum-typing-in-progress", 10).length, 10);
+});
+
+test("nearestIndex finds the closest value in a sorted list", () => {
+  const xs = [10, 20, 30, 40];
+  assert.equal(nearestIndex(xs, 24), 1);
+  assert.equal(nearestIndex(xs, 26), 2);
+  assert.equal(nearestIndex(xs, 0), 0);
+  assert.equal(nearestIndex(xs, 100), 3);
+  assert.equal(nearestIndex([], 5), -1);
 });

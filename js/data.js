@@ -72,12 +72,18 @@ export function projectStats(projects) {
 }
 
 // Cumulative XP for the "XP over time" graph. Expects transactions sorted oldest first.
-// [{amount: 100}, {amount: 50}] -> [{date, total: 100}, {date, total: 150}]
+// [{amount: 100}, {amount: 50}] -> [{date, total: 100, ...}, {date, total: 150, ...}]
+// Each point also keeps its own amount and project name, for the tooltip.
 export function xpOverTime(xp) {
   let total = 0;
   return xp.map((t) => {
     total += t.amount;
-    return { date: new Date(t.createdAt), total };
+    return {
+      date: new Date(t.createdAt),
+      total,
+      amount: t.amount,
+      name: t.object?.name ?? lastPathPart(t.path),
+    };
   });
 }
 
