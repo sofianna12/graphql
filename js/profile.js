@@ -107,3 +107,30 @@ export function renderAuditSection({ ratio, done, bonus, received }) {
     ),
   );
 }
+
+// Loading state: grey placeholder cards with the shape of the real ones (skeletons)
+export function renderLoading() {
+  const skeletonCard = () =>
+    h("div", { class: "card skeleton-card", "aria-hidden": "true" },
+      h("div", { class: "skeleton skeleton-title" }),
+      h("div", { class: "skeleton skeleton-line" }),
+      h("div", { class: "skeleton skeleton-line" }),
+      h("div", { class: "skeleton skeleton-line short" }),
+    );
+
+  return [
+    h("p", { class: "visually-hidden", role: "status" }, "Loading your profile…"),
+    skeletonCard(),
+    skeletonCard(),
+    skeletonCard(),
+  ];
+}
+
+// Error state: a clear message and a way to try again
+export function renderError(message, onRetry) {
+  return h("section", { class: "card error-card", role: "alert" },
+    h("h2", {}, "Could not load your profile"),
+    h("p", { class: "muted" }, message),
+    h("button", { class: "btn btn-primary", type: "button", onclick: onRetry }, "Try again"),
+  );
+}

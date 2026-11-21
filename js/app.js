@@ -10,7 +10,14 @@ import {
   xpOverTime,
   xpByProject,
 } from "./data.js";
-import { renderUserSection, renderXpSection, renderAuditSection, fullName } from "./profile.js";
+import {
+  renderUserSection,
+  renderXpSection,
+  renderAuditSection,
+  renderLoading,
+  renderError,
+  fullName,
+} from "./profile.js";
 
 const loginView = document.querySelector("#login-view");
 const appView = document.querySelector("#app-view");
@@ -33,7 +40,16 @@ function showProfile() {
   loadProfile();
 }
 
+// Increases on every load and on logout, so a slow old request
+// can never show its data after the user logged out or retried.
+let currentLoad = 0;
+
 async function loadProfile() {
+  const loadId = ++currentLoad;
+
+  profileContent.setAttribute("aria-busy", "true");
+  profileContent.replaceChildren(...renderLoading());
+
   try {
     const userId = getUserId(getToken());
 
@@ -44,7 +60,10 @@ async function loadProfile() {
       graphql(PROGRESS_QUERY, { userId }),
     ]);
 
+    if (loadId !== currentLoad) return; // a newer load or a logout happened meanwhile
+
     const user = userData.user[0]; // user is a list with only the logged-in user
+    if (!user) throw new Error("No user data was found for this account.");
     const xp = xpData.transaction;
     const { projects, level } = progressData;
 
@@ -64,12 +83,16 @@ async function loadProfile() {
     console.log("XP over time:", xpOverTime(xp));
     console.log("XP by project:", xpByProject(xp));
   } catch (error) {
+    if (loadId !== currentLoad) return;
     if (error instanceof AuthError) {
       logout();
       showError(error.message);
       return;
     }
     console.error(error);
+    profileContent.replaceChildren(renderError(error.message, loadProfile));
+  } finally {
+    if (loadId === currentLoad) profileContent.removeAttribute("aria-busy");
   }
 }
 
@@ -116,8 +139,10 @@ form.addEventListener("submit", async (event) => {
 });
 
 function logout() {
+  currentLoad++; // ignore any request that is still running
   clearToken();
   profileContent.replaceChildren(); // remove the previous user's data from the page
+  profileContent.removeAttribute("aria-busy");
   greeting.textContent = "Profile";
   showLogin();
 }
