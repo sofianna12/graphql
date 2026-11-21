@@ -1,6 +1,6 @@
 import { signin, graphql, AuthError } from "./api.js";
 import { saveToken, getToken, clearToken, isTokenValid, getUserId } from "./auth.js";
-import { USER_QUERY, XP_QUERY, PROGRESS_QUERY } from "./queries.js";
+import { USER_QUERY, XP_QUERY, PROGRESS_QUERY, SKILLS_QUERY } from "./queries.js";
 import {
   totalXp,
   currentLevel,
@@ -8,6 +8,7 @@ import {
   auditStats,
   projectStats,
   projectLists,
+  topSkills,
   xpOverTime,
   xpByProject,
 } from "./data.js";
@@ -56,10 +57,11 @@ async function loadProfile() {
     const userId = getUserId(getToken());
 
     // All queries run at the same time instead of one after the other
-    const [userData, xpData, progressData] = await Promise.all([
+    const [userData, xpData, progressData, skillsData] = await Promise.all([
       graphql(USER_QUERY),
       graphql(XP_QUERY, { userId }),
       graphql(PROGRESS_QUERY, { userId }),
+      graphql(SKILLS_QUERY, { userId }),
     ]);
 
     if (loadId !== currentLoad) return; // a newer load or a logout happened meanwhile
@@ -83,6 +85,7 @@ async function loadProfile() {
         xpPerProject: xpByProject(xp),
         projectResults: projectStats(projects),
         projectNames: projectLists(projects),
+        skills: topSkills(skillsData.transaction),
       }),
     );
   } catch (error) {

@@ -142,3 +142,32 @@ export function projectLists(projects) {
       .map((p) => ({ name: p.object.name, date: new Date(p.createdAt) })),
   };
 }
+
+// Short names that read better in capitals
+const SKILL_NAMES = {
+  js: "JS",
+  sql: "SQL",
+  html: "HTML",
+  css: "CSS",
+  tcp: "TCP",
+  ai: "AI",
+  go: "Go",
+};
+
+// "skill_back-end" -> "Back-end", "skill_js" -> "JS"
+export function skillName(type) {
+  const key = type.replace(/^skill_/, "");
+  return SKILL_NAMES[key] ?? key[0].toUpperCase() + key.slice(1);
+}
+
+// The strongest skills, highest first: [{ name, value }] with value 0-100.
+export function topSkills(skills, n = 8) {
+  const best = new Map();
+  for (const s of skills) {
+    best.set(s.type, Math.max(best.get(s.type) ?? 0, s.amount)); // safe even without distinct_on
+  }
+  return [...best]
+    .map(([type, value]) => ({ name: skillName(type), value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, n);
+}

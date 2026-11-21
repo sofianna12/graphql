@@ -78,3 +78,22 @@ export const PROGRESS_QUERY = `
     }
   }
 `;
+
+// Skills: every skill_* transaction type, only its highest amount.
+// distinct_on keeps one row per type; order_by puts the highest amount first,
+// so that row is the current value of the skill (0-100).
+export const SKILLS_QUERY = `
+  query Skills($userId: Int!) {
+    transaction(
+      where: {
+        userId: { _eq: $userId }
+        type: { _like: "skill_%" }
+      }
+      order_by: [{ type: asc }, { amount: desc }]
+      distinct_on: type
+    ) {
+      type
+      amount
+    }
+  }
+`;
