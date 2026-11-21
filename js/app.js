@@ -77,12 +77,14 @@ async function loadProfile() {
         recent: recentXp(xp),
       }),
       renderAuditSection(auditStats(user)),
-      renderStatsSection({ xpTimeline: xpOverTime(xp) }),
+      renderStatsSection({
+        xpTimeline: xpOverTime(xp),
+        xpPerProject: xpByProject(xp),
+      }),
     );
 
-    // temporary: these values get their own graphs in #17 and #22
+    // temporary: this gets its own graph in #22 (bonus)
     console.log("Projects:", projectStats(projects));
-    console.log("XP by project:", xpByProject(xp));
   } catch (error) {
     if (loadId !== currentLoad) return;
     if (error instanceof AuthError) {

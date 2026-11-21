@@ -1,7 +1,7 @@
 // Tests for the pure helpers in js/charts.js.  Run: node --test
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { scale, niceTicks, monthTicks, linePath } from "../js/charts.js";
+import { scale, niceTicks, monthTicks, linePath, truncate } from "../js/charts.js";
 
 test("scale maps a value proportionally", () => {
   assert.equal(scale(5, 0, 10, 0, 200), 100);
@@ -33,4 +33,10 @@ test("monthTicks returns first days of months inside the range", () => {
 
 test("linePath builds an SVG path", () => {
   assert.equal(linePath([[0, 10], [5, 20]]), "M 0.0 10.0 L 5.0 20.0");
+});
+
+test("truncate shortens long names with an ellipsis", () => {
+  assert.equal(truncate("forum", 10), "forum");
+  assert.equal(truncate("real-time-forum-typing-in-progress", 10), "real-time…");
+  assert.equal(truncate("real-time-forum-typing-in-progress", 10).length, 10);
 });
