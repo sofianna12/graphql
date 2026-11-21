@@ -1,5 +1,6 @@
 // Builds the sections of the profile page from the processed data.
 import { h } from "./dom.js";
+import { formatBytes } from "./data.js";
 
 export function fullName(user) {
   const name = [user.firstName, user.lastName]
@@ -32,5 +33,37 @@ export function renderUserSection(user) {
       h("dt", {}, "Campus"), h("dd", {}, capitalize(user.campus) || "–"),
       h("dt", {}, "Joined"), h("dd", {}, formatDate(user.createdAt)),
     ),
+  );
+}
+
+// A big number with a small label under it
+function stat(label, value) {
+  return h("div", { class: "stat" },
+    h("span", { class: "stat-value" }, value),
+    h("span", { class: "stat-label" }, label),
+  );
+}
+
+// Section 2: XP and level
+export function renderXpSection({ level, totalXp, recent }) {
+  return h("section", { class: "card", "aria-labelledby": "xp-title" },
+    h("h2", { id: "xp-title" }, "Progress"),
+    h("div", { class: "stats" },
+      stat("Level", level),
+      stat("Total XP", formatBytes(totalXp)),
+    ),
+    h("h3", {}, "Recent XP"),
+    recent.length === 0
+      ? h("p", { class: "muted" }, "No XP yet.")
+      : h("ul", { class: "activity" },
+          recent.map((item) =>
+            h("li", {},
+              // title shows the full name on hover when it is cut with "…"
+              h("span", { class: "activity-name", title: item.name }, item.name),
+              h("span", { class: "activity-amount" }, `+${formatBytes(item.amount)}`),
+              h("time", { class: "activity-date", datetime: item.date.toISOString() }, formatDate(item.date)),
+            ),
+          ),
+        ),
   );
 }
