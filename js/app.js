@@ -1,6 +1,17 @@
 import { signin, graphql, AuthError } from "./api.js";
 import { saveToken, getToken, clearToken, isTokenValid, getUserId } from "./auth.js";
 import { USER_QUERY, XP_QUERY, PROGRESS_QUERY } from "./queries.js";
+import {
+  formatBytes,
+  formatRatio,
+  totalXp,
+  currentLevel,
+  recentXp,
+  auditStats,
+  projectStats,
+  xpOverTime,
+  xpByProject,
+} from "./data.js";
 
 const loginView = document.querySelector("#login-view");
 const appView = document.querySelector("#app-view");
@@ -37,14 +48,20 @@ async function loadProfile() {
     const xp = xpData.transaction;
     const { projects, level } = progressData;
 
-    // temporary: the calculations move to data.js in #11, the UI comes in Milestone 3
-    const totalXp = xp.reduce((sum, t) => sum + t.amount, 0);
-    console.log(user);
-    console.log(`${xp.length} XP transactions, total ${totalXp} (= ${Math.round(totalXp / 1000)} kB)`);
-    console.log("First XP project:", xp[0]?.object?.name);
-    console.log("Audit ratio:", user.auditRatio, "| up:", user.totalUp, "| bonus:", user.totalUpBonus, "| down:", user.totalDown);
-    console.log("Level:", level[0]?.amount);
-    console.log(`${projects.length} project attempts`);
+    const audits = auditStats(user);
+
+    // temporary: the profile UI comes in Milestone 3
+    console.log("XP:", formatBytes(totalXp(xp)));
+    console.log("Level:", currentLevel(level));
+    console.log(
+      "Audit ratio:", formatRatio(audits.ratio),
+      "| Done:", formatBytes(audits.done), "+", formatBytes(audits.bonus),
+      "| Received:", formatBytes(audits.received)
+    );
+    console.log("Projects:", projectStats(projects));
+    console.log("Recent XP:", recentXp(xp));
+    console.log("XP over time:", xpOverTime(xp));
+    console.log("XP by project:", xpByProject(xp));
   } catch (error) {
     if (error instanceof AuthError) {
       logout();
