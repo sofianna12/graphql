@@ -156,6 +156,7 @@ body {
 /* ===== Profile page ===== */
 .topbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
@@ -685,4 +686,142 @@ body {
 .radar-dot:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* ===== Navigation tabs ===== */
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-right: auto; /* stay next to the greeting, push Log out to the right */
+}
+
+.tab {
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  color: var(--muted);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.tab:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.tab[aria-current="page"] {
+  background: var(--bg);
+  color: var(--accent);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ===== GraphiQL ===== */
+.graphiql {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.graphiql-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "head   head"
+    "editor result";
+  gap: 1rem 1.5rem;
+}
+
+.graphiql-head { grid-area: head; }
+.graphiql-editor { grid-area: editor; display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+.graphiql-result { grid-area: result; display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+
+.graphiql-head .muted {
+  margin: 0.25rem 0 0.75rem;
+}
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-small {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+.graphiql label,
+.graphiql-result-head {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.graphiql-result-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.graphiql textarea,
+.graphiql-output {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  tab-size: 2;
+}
+
+.graphiql textarea {
+  resize: vertical;
+}
+
+.graphiql textarea:focus,
+.graphiql-output:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.graphiql-output {
+  flex: 1;
+  margin: 0;
+  min-height: 300px;
+  max-height: 520px;
+  overflow: auto;
+  white-space: pre;
+}
+
+.graphiql-output.is-error {
+  color: var(--error);
+}
+
+.graphiql-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 760px) {
+  .graphiql-card {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "head"
+      "editor"
+      "result";
+  }
+}
+
+@media (max-width: 480px) {
+  .tabs {
+    order: 3; /* tabs go to their own row under the greeting */
+    width: 100%;
+  }
 }

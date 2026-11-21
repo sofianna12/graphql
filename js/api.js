@@ -49,8 +49,10 @@ export async function signin(identifier, password) {
   return token;
 }
 
-// Sends a GraphQL query with the user's JWT and returns the "data" part of the response.
-export async function graphql(query, variables = {}) {
+// Sends a GraphQL query with the user's JWT and returns the whole JSON response
+// ({ data } or { errors }). Used as it is by the GraphiQL page.
+// Throws AuthError when the session is invalid, Error on network problems.
+export async function graphqlRequest(query, variables = {}) {
   const token = getToken();
   if (!token) {
     throw new AuthError("You are not logged in.");
@@ -81,15 +83,22 @@ export async function graphql(query, variables = {}) {
   const json = await res.json();
 
   // GraphQL errors usually come with status 200, so we must check the body too
-  if (json.errors) {
-    const isJwtError = json.errors.some(
-      (err) => err.extensions?.code === "invalid-jwt" || err.message.includes("JWT")
-    );
-    if (isJwtError) {
-      throw new AuthError("Your session has expired. Please sign in again.");
-    }
-    throw new Error(json.errors[0].message);
+  const isJwtError = json.errors?.some(
+    (err) => err.extensions?.code === "invalid-jwt" || err.message.includes("JWT")
+  );
+  if (isJwtError) {
+    throw new AuthError("Your session has expired. Please sign in again.");
   }
 
+  return json;
+}
+
+// Same request, but returns only "data" and turns GraphQL errors into exceptions.
+// Used by the profile page.
+export async function graphql(query, variables = {}) {
+  const json = await graphqlRequest(query, variables);
+  if (json.errors) {
+    throw new Error(json.errors[0].message);
+  }
   return json.data;
 }

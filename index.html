@@ -33,11 +33,53 @@
   <div id="app-view" hidden>
     <header class="topbar">
       <h1 id="greeting">Profile</h1>
+      <nav class="tabs" aria-label="Pages">
+        <a href="#/" class="tab" data-page="profile">Profile</a>
+        <a href="#/graphiql" class="tab" data-page="graphiql">GraphiQL</a>
+      </nav>
       <button id="logout-button" class="btn btn-secondary" type="button">Log out</button>
     </header>
 
     <!-- The profile sections will be added here (Milestone 3) -->
     <main id="profile-content" class="profile-content"></main>
+
+    <!-- Our own GraphiQL: run any query with the logged-in user's token -->
+    <main id="graphiql-page" class="graphiql" hidden>
+      <form id="graphiql-form" class="card graphiql-card">
+        <div class="graphiql-head">
+          <h2>GraphiQL</h2>
+          <p class="muted">Run GraphQL queries on your own data. You can only see data that belongs to you.</p>
+          <div class="examples" role="group" aria-label="Example queries">
+            <span class="muted">Examples:</span>
+            <button type="button" class="btn btn-secondary btn-small" data-example="normal">Normal</button>
+            <button type="button" class="btn btn-secondary btn-small" data-example="nested">Nested</button>
+            <button type="button" class="btn btn-secondary btn-small" data-example="arguments">Arguments</button>
+            <button type="button" class="btn btn-secondary btn-small" data-example="schema">Schema</button>
+          </div>
+        </div>
+
+        <div class="graphiql-editor">
+          <label for="graphiql-query">Query</label>
+          <textarea id="graphiql-query" name="query" rows="12" spellcheck="false" autocapitalize="none"></textarea>
+
+          <label for="graphiql-variables">Variables (JSON)</label>
+          <textarea id="graphiql-variables" name="variables" rows="4" spellcheck="false" autocapitalize="none"></textarea>
+
+          <div class="graphiql-actions">
+            <button type="submit" id="graphiql-run" class="btn btn-primary">▶ Run</button>
+            <span class="muted">or Ctrl+Enter</span>
+          </div>
+        </div>
+
+        <div class="graphiql-result">
+          <div class="graphiql-result-head">
+            <span>Response</span>
+            <span id="graphiql-status" class="muted" role="status"></span>
+          </div>
+          <pre id="graphiql-output" class="graphiql-output" tabindex="0">Press Run to see the response.</pre>
+        </div>
+      </form>
+    </main>
   </div>
 </body>
 </html>
