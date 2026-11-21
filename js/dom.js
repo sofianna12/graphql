@@ -25,3 +25,23 @@ export function h(tag, attrs = {}, ...children) {
 
   return element;
 }
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+// Same as h(), but for SVG elements (they need the SVG namespace).
+//   svg("rect", { x: 0, y: 0, width: 50, height: 10 })
+export function svg(tag, attrs = {}, ...children) {
+  const element = document.createElementNS(SVG_NS, tag);
+
+  for (const [name, value] of Object.entries(attrs)) {
+    if (value === null || value === undefined || value === false) continue;
+    element.setAttribute(name, value);
+  }
+
+  for (const child of children.flat()) {
+    if (child === null || child === undefined || child === false) continue;
+    element.append(child instanceof Node ? child : String(child));
+  }
+
+  return element;
+}
